@@ -1,2 +1,20 @@
 ﻿body {
+    background-color: black;
+    color: white;
+    font-size: 18px;
+    font-weight:normal;
+}
+span {
+    font-family: Consolas, monaco, monospace;
+    }
+input {
+    background-color: black;
+    border: none;
+    color: white;
+    font-family: Consolas, monaco, monospace;
+    font-size: 18px;
+    font-weight: lighter;
+}
+input:focus{
+    outline: none;
 }

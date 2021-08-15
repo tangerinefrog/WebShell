@@ -46,7 +46,8 @@ namespace WebShell.Controllers
         {
             return response.Replace("<", "&lt;")
                 .Replace(">", "&gt;")
-                .Replace("\n", "<br>");
+                .Replace("\n", "<br>")
+                .Replace("\r", "&nbsp;&nbsp;&nbsp;&nbsp;");
         }
     }
 }
