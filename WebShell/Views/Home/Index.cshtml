@@ -18,6 +18,7 @@
         let input = document.getElementById('input');
         let output = document.getElementById('output');
         let dir = document.getElementById('currentDir');
+        let currentComm = -1;
         let path = "@Environment.CurrentDirectory.Replace("\\", "\\\\")";
 
         async function onSubmit(e) {
@@ -32,11 +33,31 @@
                         input.scrollIntoView();
                     });
                 input.value = null;
+                currentComm = -1;
             }
         }
+
         document.addEventListener(
             'keydown',
-            () => input.focus()
+            async (e) => {
+                input.focus();
+                if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                    await fetch('home/history')
+                        .then(data => data.json())
+                        .then(data => {
+                            var len = data.length - 1;
+                            if (e.key === 'ArrowUp') {
+                                if (currentComm !== len) 
+                                    currentComm++;
+                            }
+                            else {
+                                if (currentComm !== 0)
+                                    currentComm--;
+                            }
+                            input.value = data[len - currentComm].text;
+                        });
+                }
+            }
         );
     </script>
 }

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using WebShell.Helpers;
 using WebShell.Models;
 
@@ -13,9 +14,11 @@ namespace WebShell.Controllers
     public class HomeController : Controller
     {
         private readonly CommandPrompt _cmd;
+        private readonly CommandContext _db;
 
-        public HomeController()
+        public HomeController(CommandContext ctx)
         {
+            _db = ctx;
             _cmd = new CommandPrompt();
         }
 
@@ -25,10 +28,13 @@ namespace WebShell.Controllers
             return View();
         }
 
-        public IEnumerable<string> Output(string command)
+        public async Task<IEnumerable<string>> Output(string command)
         {
             if (command == null)
                 return null;
+
+            await _db.AddAsync(new Command(){Text = command});
+            await _db.SaveChangesAsync();
 
             var commSplitted = command.Split(' ');
             
@@ -55,9 +61,22 @@ namespace WebShell.Controllers
             }
 
             var path = HttpContext.Session.GetString("path") ?? Environment.CurrentDirectory;
+
+            if (commSplitted[0] == "histclr")
+            {
+                _db.Commands.RemoveRange(_db.Commands);
+                await _db.SaveChangesAsync();
+                return new[] { "Cleared!", path };
+            }
+
             var output = ResponseBeautifier(_cmd.Run(command, path));
             
-            return new[]{ output, Path.GetFullPath(path) };
+            return new[]{ output, path };
+        }
+
+        public async Task<IEnumerable<Command>> History()
+        {
+            return await _db.Commands.ToArrayAsync();
         }
         
         private string ResponseBeautifier(string response)
