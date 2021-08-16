@@ -43,7 +43,7 @@ namespace WebShell.Controllers
                 var currentPath = commSplitted[1];
                 if (Path.IsPathRooted(currentPath) && Directory.Exists(currentPath))
                 {
-                    HttpContext.Session.SetString("path", currentPath);
+                    HttpContext.Session.SetString("path", Path.GetFullPath(currentPath));
                 }
                 else
                 {
