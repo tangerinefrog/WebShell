@@ -13,59 +13,51 @@ namespace WebShell.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly CommandPrompt _cmd;
-        private readonly CommandContext _db;
+        private readonly ICommandPrompt _cmd;
+        private readonly ICommandContext _db;
 
-        public HomeController(CommandContext ctx)
+        public HomeController(ICommandContext ctx, ICommandPrompt cmd)
         {
             _db = ctx;
-            _cmd = new CommandPrompt();
+            _cmd = cmd;
         }
 
         public IActionResult Index()
         {
             HttpContext.Session.SetString("path", Environment.CurrentDirectory);
+
             return View();
         }
 
-        public async Task<IEnumerable<string>> Output(string command)
+        public IEnumerable<string> Output(string command)
         {
             if (command == null)
                 return null;
 
-            await _db.AddAsync(new Command(){Text = command});
-            await _db.SaveChangesAsync();
+            _db.SaveCommand(command);
 
-            var commSplitted = command.Split(' ');
-            
-            if (commSplitted.Length > 1 && commSplitted[0] == "cd")
+            var commSplitted = command
+                .Split(' ')
+                .Select(item => item.ToLower())
+                .ToArray();
+
+            var comm = commSplitted[0];
+            var args = commSplitted[1..];
+
+
+            if (args.Length > 0 && (comm == "cd" || comm == "chdir"))
             {
-                var currentPath = commSplitted[1];
-                if (Path.IsPathRooted(currentPath) && Directory.Exists(currentPath))
-                {
-                    HttpContext.Session.SetString("path", Path.GetFullPath(currentPath));
-                }
-                else
-                {
-                    var temp = Path.GetFullPath(
-                                        Path.Combine(
-                                            HttpContext.Session.GetString("path"), 
-                                            currentPath) 
-                                    );
-
-                    if (Directory.Exists(temp))
-                    {
-                        HttpContext.Session.SetString("path", temp);
-                    }
-                }
+                var currentPath = HttpContext.Session.GetString("path");
+                
+                HttpContext.Session.SetString("path", 
+                    PathHelper.ProcessPath(args[0], currentPath));
             }
 
             var path = HttpContext.Session.GetString("path") ?? Environment.CurrentDirectory;
 
-            if (commSplitted[0] == "histclr")
+            if (comm == "histclr")
             {
-                _db.Commands.RemoveRange(_db.Commands);
-                await _db.SaveChangesAsync();
+                _db.ClearHistory();
                 return new[] { "Cleared!", path };
             }
 

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using WebShell.Helpers;
 using WebShell.Models;
 
 namespace WebShell
@@ -24,8 +25,11 @@ namespace WebShell
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<CommandContext>(opt => 
+            services.AddDbContext<CommandContext>(opt =>
                 opt.UseSqlServer(Configuration["ConnectionStrings:DefaultConnection"]));
+            services.AddTransient<ICommandContext, CommandContext>();
+            services.AddTransient<ICommandPrompt, CommandPrompt>();
+
             services.AddMvc(opt => opt.EnableEndpointRouting = false);
             services.AddSession();
         }
@@ -34,8 +38,7 @@ namespace WebShell
         {
             app.UseDeveloperExceptionPage();
             app.UseStatusCodePages();
-            //app.UseHttpsRedirection();
-
+            
             app.UseStaticFiles();
             app.UseSession();
 

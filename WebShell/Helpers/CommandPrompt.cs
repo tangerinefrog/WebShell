@@ -3,7 +3,7 @@ using System.IO;
 
 namespace WebShell.Helpers
 {
-    public class CommandPrompt
+    public class CommandPrompt : ICommandPrompt
     {
         private readonly Process _cmd;
 
